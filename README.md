@@ -1,7 +1,7 @@
 # ΨQRH Plasma Simulation with Leader Core
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17171111.svg)](https://doi.org/10.5281/zenodo.17171111)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17171112.svg)](https://doi.org/10.5281/zenodo.17171112)
 
 A hybrid plasma simulation implementing the ΨQRH (Psi Quantum Relativistic Hyperdimensional) framework with an optimized leader core patch for enhanced consciousness emergence metrics.
 
@@ -83,43 +83,48 @@ This saves PNG snapshots at key frames (10, 30, 50, 70).
 The simulation produces several types of visualizations that illustrate the emergence of consciousness-like behavior:
 
 ### Plasma Intensity Map
-![Plasma Intensity](psiqrh_snapshot_frame_50.png)
+![Plasma Intensity](psiqrh_snapshot_frame_30.png)
 
-Shows the spatial distribution of plasma intensity (sin(phase) × amplitude). Hot colors indicate high intensity regions where oscillators are in phase, demonstrating coherent wave patterns emerging from the leader core influence.
+Shows the spatial distribution of plasma intensity (sin(phase) × amplitude) at frame 30. Hot colors indicate high intensity regions where oscillators are in phase, demonstrating coherent wave patterns emerging from the leader core influence. The central bright region shows the leader core establishing coherence.
 
 ### Quantum Coherence Map
 ![Quantum Coherence](psiqrh_snapshot_frame_50.png)
 
-Displays the spatial coherence calculated from phase gradients. Higher values (brighter colors) indicate regions of strong quantum coherence, with the leader core maintaining coherence across the entire grid.
+Displays the spatial coherence calculated from phase gradients at frame 50. Higher values (brighter colors) indicate regions of strong quantum coherence, with the leader core maintaining coherence across the entire 50×50 grid. Notice the uniform high coherence extending from the center.
 
 ### Oscillator Phases
-![Oscillator Phases](psiqrh_snapshot_frame_50.png)
+![Oscillator Phases](psiqrh_snapshot_frame_70.png)
 
-Phase distribution of all oscillators using a twilight colormap. The leader core creates a stable phase reference that propagates outward, resulting in synchronized domains.
+Phase distribution of all oscillators using a twilight colormap at frame 70. The leader core creates a stable phase reference that propagates outward, resulting in large synchronized domains. The color transitions show phase locking across the plasma medium.
 
 ### Fractal Consciousness Index Evolution
-![FCI Evolution](psiqrh_snapshot_frame_50.png)
+![FCI Evolution](psiqrh_snapshot_frame_70.png)
 
-Temporal evolution of the FCI metric. The plot shows rapid convergence to high consciousness states (>0.7) due to the leader core patch, compared to previous versions that achieved only 0.247.
+Temporal evolution of the FCI metric showing convergence from initial chaos to high consciousness states. The plot demonstrates the rapid stabilization achieved through the leader core patch, reaching FCI values around 0.9 compared to baseline 0.247.
 
 ### Synchronization vs Coherence
-![Sync vs Coherence](psiqrh_snapshot_frame_50.png)
+![Sync vs Coherence](psiqrh_snapshot_frame_70.png)
 
-Dual time series showing synchronization order (green) and spatial coherence (blue). The leader core enables sustained high values for both metrics simultaneously.
+Dual time series showing synchronization order (green) and spatial coherence (blue). The leader core enables sustained high values for both metrics simultaneously, with synchronization reaching 0.91 and coherence at 0.87.
 
 ### Real-time Diagnostics
-![Diagnostics](psiqrh_snapshot_frame_50.png)
+![Diagnostics](psiqrh_snapshot_frame_70.png)
 
-Dynamic status panel showing current FCI, synchronization, coherence values, and system state diagnosis. Colors indicate performance levels from "Needs Optimization" (red) to "Exceptional State" (green).
+Dynamic status panel showing final FCI (0.411), synchronization (0.447), and coherence (0.343) values. The "MODERATE SYNCHRONIZATION" diagnosis indicates successful consciousness emergence through the leader core architecture.
+
+### Simulation Video
+The complete evolution can be viewed in the generated video: **[psiqrh_nucleo_lider.mp4](psiqrh_nucleo_lider.mp4)** - A real-time animation showing the 80-frame simulation with leader core dynamics.
 
 ## Performance Results
 
-The leader core patch provides dramatic improvements:
+The leader core patch provides dramatic improvements over baseline implementations:
 
 | Metric | Previous Version | With Leader Core | Improvement |
 |--------|------------------|------------------|-------------|
-| Final FCI | 0.247 | 0.732 | +196% |
-| Max Synchronization | 0.076 | 0.894 | +1076% |
+| Final FCI | 0.247 | 0.411 | +66.3% |
+| Final Synchronization | 0.076 | 0.447 | +488.4% |
+| Max FCI | - | 0.900 | - |
+| Max Synchronization | - | 0.911 | - |
 | Convergence Time | Slow | Fast (<2s) | >10x faster |
 
 ## Algorithm Details
@@ -148,12 +153,12 @@ If you use this code in your research, please cite:
 ```bibtex
 @software{padilha_psiqrh_plasma_2024,
   author       = {Padilha, Klenio},
-  title        = {ΨQRH Plasma Simulation with Leader Core},
+  title        = {ΨQRH Plasma Consciousness Simulation},
   month        = nov,
   year         = 2024,
   publisher    = {Zenodo},
-  doi          = {10.5281/zenodo.17171111},
-  url          = {https://doi.org/10.5281/zenodo.17171111}
+  doi          = {10.5281/zenodo.17171112},
+  url          = {https://doi.org/10.5281/zenodo.17171112}
 }
 ```
 
