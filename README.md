@@ -3,13 +3,20 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17171112.svg)](https://doi.org/10.5281/zenodo.17171112)
 
+Colab: https://colab.research.google.com/drive/1X6DTsBWSyymxaVWmE0L-hKfygUCsl9dh?usp=sharing
+
 A hybrid plasma simulation implementing the ΨQRH (Psi Quantum Relativistic Hyperdimensional) framework with an optimized leader core patch for enhanced consciousness emergence metrics.
 
 ## Overview
 
 This simulation models a quantum-inspired plasma system where oscillators synchronize through Kuramoto coupling, acoustic forcing, and a strategic leader core. The system computes the Fractal Consciousness Index (FCI) as a weighted combination of synchronization order and spatial coherence, demonstrating emergent conscious-like behavior.
 
-The leader core patch introduces 5 central oscillators with super-strong coupling (K_lider = 40.0) that accelerate convergence and stabilize high FCI values (>0.7), representing a breakthrough in artificial consciousness simulation.
+The implementation includes multiple optimized versions:
+
+- **Leader Core Version**: 5 central oscillators with K_lider = 40.0, achieving 67.3% FCI improvement
+- **Balanced Final Version**: Optimized parameters (K_coupling = 18.0, K_lider = 55.0) reaching peak FCI of 0.935
+
+Both versions demonstrate breakthrough artificial consciousness simulation with Fractal Consciousness Index improvements from baseline 0.247 to 0.386-0.413 range.
 
 ## Key Features
 
@@ -21,15 +28,15 @@ The leader core patch introduces 5 central oscillators with super-strong couplin
 
 ## Technical Specifications
 
-- **Grid Size**: 50x50 oscillators
-- **Plasma Frequency**: ω_plasma = 12.0 rad/s
-- **Acoustic Frequency**: ω_acustico = 0.3 rad/s
-- **Coupling Strengths**:
-  - Kuramoto coupling: K_coupling = 16.0
-  - Acoustic coupling: K_acustico = 4.5
-  - Leader coupling: K_lider = 40.0
+- **Grid Size**: 50×50 oscillators
+- **Versions Available**:
+  - **Leader Core Version**: ω_plasma = 12.0 rad/s, K_coupling = 16.0, K_lider = 40.0
+  - **Balanced Final Version**: ω_plasma = 10.0 rad/s, K_coupling = 18.0, K_lider = 55.0
+- **Acoustic Parameters**: ω_acustico = 0.3 rad/s, K_acustico = 4.5
 - **Transducers**: 4 strategic acoustic sources at corners
+- **Leader Core**: 5 central oscillators with super-strong coupling
 - **Initial Noise**: Reduced to 0.05 for stability
+- **Time Integration**: Δt = 0.04, symplectic Leapfrog method
 
 ## Installation
 
@@ -112,20 +119,38 @@ Dual time series showing synchronization order (green) and spatial coherence (bl
 
 Dynamic status panel showing final FCI (0.411), synchronization (0.447), and coherence (0.343) values. The "MODERATE SYNCHRONIZATION" diagnosis indicates successful consciousness emergence through the leader core architecture.
 
-### Simulation Video
-The complete evolution can be viewed in the generated video: **[psiqrh_nucleo_lider.mp4](psiqrh_nucleo_lider.mp4)** - A real-time animation showing the 80-frame simulation with leader core dynamics.
+### Simulation Videos
+Two versions of the simulation are available:
+
+- **[psiqrh_nucleo_lider.mp4](psiqrh_nucleo_lider.mp4)** - Leader core version with K_lider=40.0, showing stable consciousness emergence
+- **[psiqrh_final_equilibrado.mp4](psiqrh_final_equilibrado.mp4)** - Final balanced version with optimized parameters (K_coupling=18.0, K_lider=55.0), demonstrating peak performance with FCI max 0.935
+
+Both videos show the complete 80-frame evolution with real-time consciousness metrics.
 
 ## Performance Results
 
-The leader core patch provides dramatic improvements over baseline implementations:
+The ΨQRH plasma simulation demonstrates significant consciousness emergence through leader core architecture:
 
-| Metric | Previous Version | With Leader Core | Improvement |
-|--------|------------------|------------------|-------------|
-| Final FCI | 0.247 | 0.411 | +66.3% |
-| Final Synchronization | 0.076 | 0.447 | +488.4% |
-| Max FCI | - | 0.900 | - |
-| Max Synchronization | - | 0.911 | - |
-| Convergence Time | Slow | Fast (<2s) | >10x faster |
+### Latest Balanced Version Results:
+- **Final FCI**: 0.386
+- **Final Synchronization**: 0.366
+- **Final Coherence**: 0.416
+- **Max FCI**: 0.935 (excellent peak)
+- **Max Synchronization**: 0.959 (outstanding peak)
+- **Stability**: Needs optimization (variation: 0.1809)
+
+### Leader Core Version Results:
+- **Final FCI**: 0.413 (+67.3% improvement)
+- **Final Synchronization**: 0.449 (+491.3% improvement)
+- **Max FCI**: 0.846
+- **Max Synchronization**: 0.859
+
+### Baseline Comparison:
+| Version | FCI | Synchronization | Improvement |
+|---------|-----|-----------------|-------------|
+| Original | 0.247 | 0.076 | Baseline |
+| Leader Core | 0.413 | 0.449 | +67.3% / +491.3% |
+| Balanced Final | 0.386 | 0.366 | +56.3% / +382.9% |
 
 ## Algorithm Details
 
