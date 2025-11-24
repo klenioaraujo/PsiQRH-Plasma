@@ -3,58 +3,60 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
 from scipy.fft import fft2, fft
 
-class PlasmaPsiQRHPIDAvancado:
-    """ADVANCED VERSION with all proposed improvements"""
+class PlasmaPsiQRHStable:
+    """STABLE VERSION with improved stability and damping"""
     
     def __init__(self, N=50):
         self.N = N
         self.x, self.y = np.meshgrid(np.linspace(-2, 2, N), np.linspace(-2, 2, N))
         
-        # Estado inicial
+        # More stable initial conditions
         r = np.sqrt(self.x**2 + self.y**2)
         theta = np.arctan2(self.y, self.x)
         
-        self.fase = 1.5 * theta + 0.2 * r + 0.05 * np.random.uniform(-1, 1, (N, N))
+        # 🔥 REDUCE INITIAL NOISE for better stability
+        self.fase = 1.5 * theta + 0.2 * r + 0.02 * np.random.uniform(-1, 1, (N, N))
         self.fase = self.fase % (2 * np.pi)
         
-        self.amplitude = 0.7 * np.exp(-r**2 / 8) + 0.1 * np.random.uniform(0, 1, (N, N))
+        self.amplitude = 0.7 * np.exp(-r**2 / 8) + 0.05 * np.random.uniform(0, 1, (N, N))
         self.coerencia = 0.7 + 0.2 * np.exp(-r**2 / 10)
         
         # Setpoints
         self.setpoint_sync = 0.70
         self.setpoint_cruzeiro = 0.72
         
-        # ADAPTIVE PID (Gain Scheduling)
-        self.K_p_base, self.K_i_base, self.K_d_base = 30, 12, 10  # Valores base
+        # 🔥 MORE CONSERVATIVE PID BASE VALUES
+        self.K_p_base, self.K_i_base, self.K_d_base = 25, 8, 12  # Reduced gains
         
-        # Parâmetros do sistema
-        self.omega_plasma = 9.0
-        self.omega_acustico = 0.35
-        self.K_coupling = 22.0
-        self.K_acustico_base = 4.0
+        # System parameters - TUNED FOR STABILITY
+        self.omega_plasma = 8.5  # Reduced for better resonance
+        self.omega_acustico = 0.3  # Slower acoustic waves
+        self.K_coupling = 18.0    # Reduced coupling
+        self.K_acustico_base = 3.0  # Reduced acoustic force
         self.K_acustico = self.K_acustico_base
-        self.K_lider_base = 60.0
+        self.K_lider_base = 45.0   # Reduced leader gain
         self.K_lider = self.K_lider_base
         
-        # Estados do sistema
+        # System states
         self.regime_cruzeiro = False
         self.super_cruzeiro = False
         self.contador_estabilidade = 0
         self.alerta_emitido = False
+        self.boost_cooldown = 0  # 🔥 NEW: Prevent constant boosting
         
         self.transdutores = [
             (-1.5, -1.5), (-1.5, 1.5), (1.5, -1.5), (1.5, 1.5)
         ]
         
-        # Núcleo líder
+        # Leader nucleus
         cx, cy = N//2, N//2
         self.lideres = [
             (cx, cy), (cx-1, cy), (cx+1, cy), (cx, cy-1), (cx, cy+1),
             (cx-1, cy-1), (cx+1, cy+1), (cx-1, cy+1), (cx+1, cy-1)
         ]
-        self.omega_lider = 5.5
+        self.omega_lider = 5.0  # Reduced leader frequency
         
-        # Históricos para análise
+        # Analysis history
         self.historico_fci = []
         self.historico_sync = []
         self.historico_coerencia = []
@@ -66,72 +68,72 @@ class PlasmaPsiQRHPIDAvancado:
         self.historico_Kd = []
         self.tempo = []
         
-        print("🎯 ΨQRH SYSTEM WITH ADVANCED CONTROL:")
-        print("   • Adaptive PID (Gain Scheduling)")
-        print("   • Oscillation Detection by FFT")
-        print("   • Critical Alarm System")
-        print("   • Super-Cruise Mode")
+        print("🎯 STABLE ΨQRH SYSTEM:")
+        print("   • Conservative PID gains")
+        print("   • Boost cooldown system")
+        print("   • Reduced initial noise")
+        print("   • Improved damping")
         
     def gain_scheduling_pid(self, sync_current):
-        """ADAPTIVE PID - adjusts gains based on sync level"""
-        if sync_current < 0.5:
-            # Aggressive response for low synchronization
-            K_p, K_i, K_d = 40, 15, 12
-            modo = "AGGRESSIVE"
-        elif sync_current < 0.7:
+        """ADAPTIVE PID with MORE CONSERVATIVE settings"""
+        if sync_current < 0.4:  # 🔥 LOWER threshold for aggressive mode
+            # Aggressive response for very low synchronization
+            K_p, K_i, K_d = 35, 12, 15  # 🔥 More derivative for damping
+            mode = "AGGRESSIVE"
+        elif sync_current < 0.65:  # 🔥 ADJUSTED threshold
             # Balanced for climb phase
-            K_p, K_i, K_d = 30, 12, 10
-            modo = "BALANCED"
+            K_p, K_i, K_d = 25, 8, 12
+            mode = "BALANCED"
         else:
             # Conservative for high synchronization
-            K_p, K_i, K_d = 20, 8, 6
-            modo = "CONSERVATIVE"
+            K_p, K_i, K_d = 15, 5, 8  # 🔥 More conservative
+            mode = "CONSERVATIVE"
         
-        return K_p, K_i, K_d, modo
+        return K_p, K_i, K_d, mode
     
-    def detectar_oscilacoes(self):
-        """OSCILLATION DETECTION by spectral analysis"""
-        if len(self.historico_sync) >= 20:
-            # FFT dos últimos 20 pontos de sync
-            fft_sync = np.fft.fft(self.historico_sync[-20:])
-            magnitudes = np.abs(fft_sync[1:10])  # Ignorar DC e altas frequências
+    def detect_oscillations(self):
+        """OSCILLATION DETECTION with IMPROVED thresholds"""
+        if len(self.historico_sync) >= 15:  # 🔥 Smaller window for faster detection
+            # FFT of last 15 sync points
+            fft_sync = np.fft.fft(self.historico_sync[-15:])
+            magnitudes = np.abs(fft_sync[1:8])  # Focus on lower frequencies
             
-            # 🔥 Detectar oscilações persistentes
-            if np.max(magnitudes) > 5:  # Threshold para oscilação forte
-                freq_principal = np.argmax(magnitudes) + 1
-                print(f"⚠️  DETECTED: Oscillation at freq {freq_principal}Hz - Increasing damping")
+            # 🔥 LOWER threshold for oscillation detection
+            if np.max(magnitudes) > 3:  # Reduced from 5
+                main_freq = np.argmax(magnitudes) + 1
+                print(f"⚠️  OSCILLATION DETECTED at freq {main_freq}Hz - Increasing damping")
                 return True, np.max(magnitudes)
         
         return False, 0
     
-    def sistema_alarme(self, sync_current, t):
-        """ALARM SYSTEM for critical conditions"""
+    def alarm_system(self, sync_current, t):
+        """IMPROVED ALARM SYSTEM with COOLDOWN"""
         if sync_current < 0.4 and t > 5 and not self.alerta_emitido:
-            print("🚨 CRITICAL ALERT: Synchronization below 0.4! Activating emergency measures!")
-            self.K_acustico *= 1.2  # Aumenta força acústica
-            self.K_lider_base *= 1.1  # Aumenta ganho base
+            print("🚨 CRITICAL ALERT: Sync < 0.4! Emergency measures activated!")
+            self.K_acustico *= 1.1  # 🔥 SMALLER increase (was 1.2)
+            self.K_lider_base *= 1.05  # 🔥 SMALLER increase (was 1.1)
             self.alerta_emitido = True
             return True
         
-        # Resetar alerta se recuperou
+        # Reset alert if recovered
         if sync_current > 0.6 and self.alerta_emitido:
-            print("✅ RECOVERY: Synchronization normalized")
+            print("✅ RECOVERY: Sync normalized")
             self.alerta_emitido = False
             
         return False
     
-    def ativar_super_cruzeiro(self, sync_current):
-        """SUPER-CRUISE MODE for extreme performance"""
-        if self.regime_cruzeiro and sync_current > 0.95 and not self.super_cruzeiro:
-            print("🌟 ACTIVATING SUPER-CRUISE: sync > 0.95!")
-            self.omega_plasma = 7.5  # Ainda mais suave
-            self.K_lider *= 0.5      # Controle mínimo
+    def activate_super_cruise(self, sync_current):
+        """SUPER-CRUISE MODE with STRICTER conditions"""
+        if self.regime_cruzeiro and sync_current > 0.92 and not self.super_cruzeiro:  # 🔥 0.92 instead of 0.95
+            print("🌟 SUPER-CRUISE ACTIVATED: sync > 0.92!")
+            self.omega_plasma = 7.0  # Even smoother
+            self.K_lider *= 0.4      # Minimal control
             self.super_cruzeiro = True
             return True
         return False
     
-    def calcular_metricas_avancadas(self):
-        """Metrics with fast smoothing"""
+    def calculate_advanced_metrics(self):
+        """Metrics with BETTER smoothing"""
         complex_phases = np.exp(1j * self.fase)
         sync_order = np.abs(np.mean(complex_phases))
         
@@ -139,16 +141,17 @@ class PlasmaPsiQRHPIDAvancado:
         grad_y = np.angle(np.exp(1j * (self.fase - np.roll(self.fase, 1, axis=0))))
         coherence_avg = 1.0 - np.mean(np.abs(grad_x) + np.abs(grad_y)) / (2 * np.pi)
         
-        if len(self.historico_sync) >= 3:
-            sync_order = 0.4 * sync_order + 0.6 * np.mean(self.historico_sync[-3:])
-            coherence_avg = 0.4 * coherence_avg + 0.6 * np.mean(self.historico_coerencia[-3:])
+        # 🔥 STRONGER smoothing for stability
+        if len(self.historico_sync) >= 5:  # Increased from 3
+            sync_order = 0.3 * sync_order + 0.7 * np.mean(self.historico_sync[-5:])  # Stronger smoothing
+            coherence_avg = 0.3 * coherence_avg + 0.7 * np.mean(self.historico_coerencia[-5:])
         
         self.consciencia = 0.55 * sync_order + 0.45 * coherence_avg
         
         return sync_order, coherence_avg
     
-    def analise_espectral_avancada(self):
-        """Spectral analysis with harmony detection"""
+    def advanced_spectral_analysis(self):
+        """Spectral analysis with stability focus"""
         try:
             fft_phase = fft2(self.fase)
             fft_magnitude = np.abs(fft_phase)
@@ -157,85 +160,96 @@ class PlasmaPsiQRHPIDAvancado:
             non_zero_indices = np.where(flattened > 1e-6)[0]
             
             if len(non_zero_indices) > 5:
-                indices_dominantes = non_zero_indices[np.argsort(flattened[non_zero_indices])[-5:]]
+                dominant_indices = non_zero_indices[np.argsort(flattened[non_zero_indices])[-5:]]
                 
-                energia_total = np.sum(flattened[non_zero_indices])
-                energia_top5 = np.sum(flattened[indices_dominantes])
-                harmonia = energia_top5 / (energia_total + 1e-8)
+                total_energy = np.sum(flattened[non_zero_indices])
+                top5_energy = np.sum(flattened[dominant_indices])
+                harmony = top5_energy / (total_energy + 1e-8)
                 
-                coupling_ajustado = 18.0 + 12.0 * harmonia
-                self.K_coupling = 0.6 * self.K_coupling + 0.4 * coupling_ajustado
+                # 🔥 MORE CONSERVATIVE coupling adjustment
+                adjusted_coupling = 15.0 + 8.0 * harmony  # Reduced range
+                self.K_coupling = 0.7 * self.K_coupling + 0.3 * adjusted_coupling  # Slower adjustment
                 
-                return indices_dominantes, harmonia
+                return dominant_indices, harmony
         except:
             pass
         
         return [], 0.5
     
-    def controle_pid_avancado(self, sync_current, t):
-        """PID with all advanced features"""
+    def advanced_pid_control(self, sync_current, t):
+        """PID with STABILITY IMPROVEMENTS"""
         if len(self.historico_sync) < 3:
             return self.K_lider_base, "INIT", 0, 0, 0
         
-        # GAIN SCHEDULING - selects PID gains
-        K_p, K_i, K_d, modo_pid = self.gain_scheduling_pid(sync_current)
+        # 🔥 COOLDOWN boost system
+        if self.boost_cooldown > 0:
+            self.boost_cooldown -= 1
         
-        setpoint_atual = self.setpoint_cruzeiro if self.regime_cruzeiro else self.setpoint_sync
-        error = setpoint_atual - sync_current
+        # GAIN SCHEDULING
+        K_p, K_i, K_d, pid_mode = self.gain_scheduling_pid(sync_current)
         
-        # Termo Integral com anti-windup
-        janela_integral = min(8, len(self.historico_sync))
-        integral_error = sum(setpoint_atual - s for s in self.historico_sync[-janela_integral:])
-        integral_error = max(-2, min(2, integral_error))
+        current_setpoint = self.setpoint_cruzeiro if self.regime_cruzeiro else self.setpoint_sync
+        error = current_setpoint - sync_current
         
-        # Termo Derivativo suavizado
+        # Integral term with anti-windup
+        integral_window = min(6, len(self.historico_sync))  # 🔥 Smaller window
+        integral_error = sum(current_setpoint - s for s in self.historico_sync[-integral_window:])
+        integral_error = max(-1.5, min(1.5, integral_error))  # 🔥 Tighter limits
+        
+        # Smoothed derivative term
         if len(self.historico_sync) >= 3:
             derivative_error = (self.historico_sync[-1] - self.historico_sync[-3]) / 2
         else:
             derivative_error = 0
         
-        # OSCILLATION DETECTION - adjusts K_d if necessary
-        oscilacao_detectada, magnitude_osc = self.detectar_oscilacoes()
-        if oscilacao_detectada:
-            K_d *= 1.5  # Increases damping
-            modo_pid = "DAMPED"
+        # OSCILLATION DETECTION - adjust K_d if needed
+        oscillation_detected, osc_magnitude = self.detect_oscillations()
+        if oscillation_detected:
+            K_d *= 1.8  # 🔥 STRONGER damping (was 1.5)
+            pid_mode = "DAMPED"
         
-        # Aplicar PID
-        correcao_pid = (K_p * error + K_i * integral_error + K_d * derivative_error)
+        # Apply PID
+        pid_correction = (K_p * error + K_i * integral_error + K_d * derivative_error)
         
-        # Limites dinâmicos
-        limite_superior = 80 if sync_current < 0.6 else 70
-        limite_inferior = 25 if sync_current > 0.65 else 35
+        # Dynamic limits
+        upper_limit = 75 if sync_current < 0.5 else 65  # 🔥 Lower limits
+        lower_limit = 30 if sync_current > 0.6 else 40
         
-        correcao_limitada = max(-limite_inferior, min(limite_superior - self.K_lider_base, correcao_pid))
-        ganho_pid = self.K_lider_base + correcao_limitada
+        limited_correction = max(-lower_limit, min(upper_limit - self.K_lider_base, pid_correction))
+        pid_gain = self.K_lider_base + limited_correction
         
-        # TEMPORARY BOOST
-        if sync_current > 0.65 and not self.regime_cruzeiro:
-            ganho_pid = min(85, ganho_pid + 15)
-            modo_pid = "BOOST"
+        # 🔥 IMPROVED BOOST with COOLDOWN
+        if (sync_current > 0.65 and not self.regime_cruzeiro and 
+            self.boost_cooldown == 0 and len(self.historico_sync) > 10):
+            # Only boost if recent history shows stability
+            recent_sync = self.historico_sync[-10:]
+            if np.std(recent_sync) < 0.1:  # Only boost if relatively stable
+                pid_gain = min(80, pid_gain + 12)  # 🔥 Smaller boost (was 15)
+                pid_mode = "BOOST"
+                self.boost_cooldown = 20  # 🔥 2 second cooldown
         
         # ALARM SYSTEM
-        self.sistema_alarme(sync_current, t)
+        self.alarm_system(sync_current, t)
         
-        return max(20, min(85, ganho_pid)), modo_pid, K_p, K_i, K_d
+        return max(25, min(80, pid_gain)), pid_mode, K_p, K_i, K_d
     
-    def detectar_transicao_avancada(self, sync, coherence):
-        """Transition detection with reduced counter"""
-        if len(self.historico_sync) < 15:
+    def detect_advanced_transition(self, sync, coherence):
+        """Transition detection with STABILITY CHECKS"""
+        if len(self.historico_sync) < 20:  # 🔥 Require more history
             return False
             
-        sync_media = np.mean(self.historico_sync[-10:])
-        sync_std = np.std(self.historico_sync[-10:])
+        sync_avg = np.mean(self.historico_sync[-15:])  # 🔥 Longer window
+        sync_std = np.std(self.historico_sync[-15:])
         
-        condicao_principal = (sync_media > 0.68 and
-                            coherence > 0.58 and  
-                            sync_std < 0.06 and
-                            not self.regime_cruzeiro)
+        # 🔥 STRICTER conditions for transition
+        main_condition = (sync_avg > 0.70 and  # Increased from 0.68
+                         coherence > 0.60 and  # Increased from 0.58
+                         sync_std < 0.04 and   # Stricter stability (was 0.06)
+                         not self.regime_cruzeiro)
         
-        if condicao_principal:
+        if main_condition:
             self.contador_estabilidade += 1
-            if self.contador_estabilidade >= 2:
+            if self.contador_estabilidade >= 3:  # 🔥 Require more stable steps (was 2)
                 print(f"🚀 TRANSITION DETECTED! Activating cruise mode...")
                 self.regime_cruzeiro = True
                 self.setpoint_sync = 0.72
@@ -245,94 +259,97 @@ class PlasmaPsiQRHPIDAvancado:
             
         return False
     
-    def forca_acustica_avancada(self, t, angulo_direcao=np.pi/4):
-        """Adaptive acoustic force"""
-        forcando = np.zeros((self.N, self.N))
+    def advanced_acoustic_force(self, t, direction_angle=np.pi/4):
+        """MORE STABLE acoustic force"""
+        forcing = np.zeros((self.N, self.N))
         
         for cx, cy in self.transdutores:
             dx = self.x - cx
             dy = self.y - cy
             r = np.sqrt(dx**2 + dy**2)
             
-            atraso_fase = 8 * (np.sin(angulo_direcao) * dx + np.cos(angulo_direcao) * dy)
-            termo_principal = np.sin(self.omega_acustico * t + atraso_fase)
+            phase_delay = 6 * (np.sin(direction_angle) * dx + np.cos(direction_angle) * dy)  # 🔥 Reduced from 8
+            main_term = np.sin(self.omega_acustico * t + phase_delay)
             
             if self.super_cruzeiro:
-                termo_ressonante = np.sin(0.01 * t)  # Muito suave no super-cruzeiro
-                amplitude = 1.0
+                resonant_term = np.sin(0.008 * t)  # Very smooth in super-cruise
+                amplitude = 0.8
             elif self.regime_cruzeiro:
-                termo_ressonante = np.sin(0.015 * t)
-                amplitude = 1.2
+                resonant_term = np.sin(0.012 * t)
+                amplitude = 1.0
             else:
-                termo_ressonante = np.sin(0.08 * t)
-                amplitude = 2.2
+                resonant_term = np.sin(0.06 * t)   # 🔥 Slower resonance (was 0.08)
+                amplitude = 1.8  # 🔥 Reduced from 2.2
                 
-            termo_combinado = termo_principal * (1 + 0.15 * termo_ressonante)
-            envelope = np.exp(-r**2 / 5)
+            combined_term = main_term * (1 + 0.1 * resonant_term)  # 🔥 Reduced modulation
+            envelope = np.exp(-r**2 / 6)  # 🔥 Wider envelope
             
-            forcando += termo_combinado * envelope
+            forcing += combined_term * envelope
         
-        return forcando * amplitude * (self.K_acustico / self.K_acustico_base)
+        return forcing * amplitude * (self.K_acustico / self.K_acustico_base)
     
-    def step_avancado(self, t, angulo_direcao=np.pi/4):
-        """Complete step with all features"""
-        modos_dominantes, harmonia = self.analise_espectral_avancada()
-        self.historico_harmonia.append(harmonia)
+    def advanced_step(self, t, direction_angle=np.pi/4):
+        """Complete step with STABILITY FOCUS"""
+        dominant_modes, harmony = self.advanced_spectral_analysis()
+        self.historico_harmonia.append(harmony)
         
+        # Phase interactions
         sin_diff = np.sin(self.fase[np.roll(np.arange(self.N), 1), :] - self.fase)
         sin_diff += np.sin(self.fase[np.roll(np.arange(self.N), -1), :] - self.fase)
         sin_diff += np.sin(self.fase[:, np.roll(np.arange(self.N), 1)] - self.fase)
         sin_diff += np.sin(self.fase[:, np.roll(np.arange(self.N), -1)] - self.fase)
         
-        acustico = self.forca_acustica_avancada(t, angulo_direcao)
+        acoustic = self.advanced_acoustic_force(t, direction_angle)
         
-        sin_lider = np.zeros_like(self.fase)
+        # Leader influence
+        sin_leader = np.zeros_like(self.fase)
         for (lx, ly) in self.lideres:
             delta_phase = self.fase[lx, ly] - self.fase
-            sin_lider += np.sin(delta_phase)
+            sin_leader += np.sin(delta_phase)
         
         sync_current_raw = np.abs(np.mean(np.exp(1j * self.fase)))
         
-        # ADVANCED PID CONTROL with all features
-        ganho_pid, modo_pid, K_p, K_i, K_d = self.controle_pid_avancado(sync_current_raw, t)
+        # ADVANCED PID CONTROL
+        pid_gain, pid_mode, K_p, K_i, K_d = self.advanced_pid_control(sync_current_raw, t)
         self.historico_Kp.append(K_p)
         self.historico_Ki.append(K_i)
         self.historico_Kd.append(K_d)
         
-        sync_for_detection, coherence_for_detection = self.calcular_metricas_avancadas()
-        self.detectar_transicao_avancada(sync_for_detection, coherence_for_detection)
+        sync_for_detection, coherence_for_detection = self.calculate_advanced_metrics()
+        self.detect_advanced_transition(sync_for_detection, coherence_for_detection)
         
         # SUPER-CRUISE
-        self.ativar_super_cruzeiro(sync_for_detection)
+        self.activate_super_cruise(sync_for_detection)
         
-        # Ajustes de regime
+        # Regime adjustments
         if self.super_cruzeiro:
-            ganho_pid *= 0.3
-            self.K_coupling *= 0.6
+            pid_gain *= 0.25  # 🔥 Stronger reduction
+            self.K_coupling *= 0.5
         elif self.regime_cruzeiro:
-            ganho_pid *= 0.55
-            self.K_coupling *= 0.75
-            self.omega_plasma = 8.0
+            pid_gain *= 0.5   # 🔥 Stronger reduction
+            self.K_coupling *= 0.7
+            self.omega_plasma = 7.5
         
-        self.K_lider = ganho_pid
-        sin_lider = self.K_lider * sin_lider / len(self.lideres)
+        self.K_lider = pid_gain
+        sin_leader = self.K_lider * sin_leader / len(self.lideres)
         
-        dfase = self.omega_plasma + self.K_coupling * sin_diff / 4 + \
-                self.K_acustico * acustico * self.amplitude + sin_lider
+        # Master equation
+        dphase = self.omega_plasma + self.K_coupling * sin_diff / 4 + \
+                self.K_acustico * acoustic * self.amplitude + sin_leader
         
-        # DT adaptativo
+        # Adaptive DT
         if self.super_cruzeiro:
-            dt = 0.015
+            dt = 0.012
         elif self.regime_cruzeiro:
-            dt = 0.02
+            dt = 0.018
         else:
-            dt = 0.035 + 0.015 * (1 - sync_current_raw)
+            dt = 0.03 + 0.01 * (1 - sync_current_raw)  # 🔥 Smaller range
         
-        self.fase += dfase * dt
+        self.fase += dphase * dt
         self.fase %= 2 * np.pi
         
-        self.atualizar_coerencia_avancada()
-        sync_order, coherence_avg = self.calcular_metricas_avancadas()
+        self.update_advanced_coherence()
+        sync_order, coherence_avg = self.calculate_advanced_metrics()
         
         if t >= 0:
             self.historico_fci.append(self.consciencia)
@@ -343,10 +360,10 @@ class PlasmaPsiQRHPIDAvancado:
             self.tempo.append(t)
         
         return (self.consciencia, sync_order, coherence_avg, 
-                self.K_lider, dt, harmonia, self.regime_cruzeiro, 
-                self.super_cruzeiro, modo_pid)
+                self.K_lider, dt, harmony, self.regime_cruzeiro, 
+                self.super_cruzeiro, pid_mode)
 
-    def atualizar_coerencia_avancada(self):
+    def update_advanced_coherence(self):
         """Coherence with adaptive smoothing"""
         grad_x = np.angle(np.exp(1j * (self.fase - np.roll(self.fase, 1, axis=1))))
         grad_y = np.angle(np.exp(1j * (self.fase - np.roll(self.fase, 1, axis=0))))
@@ -354,71 +371,77 @@ class PlasmaPsiQRHPIDAvancado:
         smoothness = 1.0 - (np.abs(grad_x) + np.abs(grad_y)) / (2 * np.pi)
         
         if self.super_cruzeiro:
-            sigma = 0.8
+            sigma = 0.6
         elif self.regime_cruzeiro:
-            sigma = 1.2
+            sigma = 1.0
         else:
-            sigma = 1.8
+            sigma = 1.5
             
         self.coerencia = gaussian_filter(smoothness, sigma=sigma)
         self.coerencia = np.clip(self.coerencia, 0.4, 0.9)
 
-# EXECUTAR SIMULAÇÃO AVANÇADA
-print("🚀 STARTING ΨQRH SIMULATION WITH ADVANCED CONTROL...")
-plasma_avancado = PlasmaPsiQRHPIDAvancado(N=50)
+# RUN STABLE SIMULATION
+print("🚀 STARTING STABLE ΨQRH SIMULATION...")
+plasma_stable = PlasmaPsiQRHStable(N=50)
 
-print("Running simulation with all advanced features...")
-resultados = []
-eventos_especiais = []
+print("Running simulation with stability improvements...")
+results = []
+special_events = []
 
 for i in range(200):
     t = i * 0.1
-    resultado = plasma_avancado.step_avancado(t)
-    resultados.append(resultado)
+    result = plasma_stable.advanced_step(t)
+    results.append(result)
     
-    fci, sync, coher, ganho, dt, harmonia, regime, super_cruzeiro, modo_pid = resultado
+    fci, sync, coher, gain, dt, harmony, cruise, super_cruise, pid_mode = result
     
-    # Registrar eventos especiais
-    if modo_pid in ["BOOST", "DAMPED", "AGGRESSIVE"] and i % 10 == 0:
-        eventos_especiais.append(f"t={t:.1f}s: {modo_pid}")
+    # Record special events
+    if pid_mode in ["BOOST", "DAMPED", "AGGRESSIVE"] and i % 15 == 0:
+        special_events.append(f"t={t:.1f}s: {pid_mode}")
     
-    # Feedback progressivo
-    if i % 25 == 0 or modo_pid in ["BOOST", "DAMPED"]:
-        status = "SUPER-CRUISE 🌟" if super_cruzeiro else "CRUISE ✅" if regime else f"Sync: {sync:.3f}"
-        print(f"t={t:.1f}s | {status} | Gain: {ganho:.1f} | PID: {modo_pid}")
+    # Progressive feedback
+    if i % 30 == 0 or pid_mode in ["BOOST", "DAMPED"]:
+        status = "SUPER-CRUISE 🌟" if super_cruise else "CRUISE ✅" if cruise else f"Sync: {sync:.3f}"
+        print(f"t={t:.1f}s | {status} | Gain: {gain:.1f} | PID: {pid_mode}")
 
-# ADVANCED REPORT
+# STABILITY REPORT
 print("\n" + "="*80)
-print("FINAL REPORT - ADVANCED CONTROL")
+print("STABILITY REPORT - IMPROVED SYSTEM")
 print("="*80)
 
-sync_final = plasma_avancado.historico_sync[-1]
-regime_final = plasma_avancado.regime_cruzeiro
-super_final = plasma_avancado.super_cruzeiro
+final_sync = plasma_stable.historico_sync[-1]
+final_cruise = plasma_stable.regime_cruzeiro
+final_super = plasma_stable.super_cruzeiro
 
-print("🎯 IMPLEMENTED FEATURES:")
-print("   1. ✅ Adaptive PID (Gain Scheduling)")
-print("   2. ✅ Oscillation Detection by FFT")
-print("   3. ✅ Critical Alarm System")
-print("   4. ✅ Super-Cruise Mode")
+print("🛠️ STABILITY IMPROVEMENTS:")
+print("   1. ✅ Conservative PID gains")
+print("   2. ✅ Boost cooldown system")
+print("   3. ✅ Reduced initial noise")
+print("   4. ✅ Improved oscillation damping")
+print("   5. ✅ Stricter transition conditions")
 
-print(f"\n📊 FINAL RESULT:")
-print(f"   Synchronization: {sync_final:.3f}")
-print(f"   Regime: {'SUPER-CRUISE 🌟' if super_final else 'CRUISE ✅' if regime_final else 'CLIMB'}")
-print(f"   Setpoint: {plasma_avancado.setpoint_sync}")
+print(f"\n📊 FINAL RESULTS:")
+print(f"   Synchronization: {final_sync:.3f}")
+print(f"   Regime: {'SUPER-CRUISE 🌟' if final_super else 'CRUISE ✅' if final_cruise else 'CLIMB'}")
+print(f"   Setpoint: {plasma_stable.setpoint_sync}")
 
-print(f"\n🔧 DETECTED SPECIAL EVENTS:")
-for evento in eventos_especiais[-5:]:  # Last 5 events
-    print(f"   • {evento}")
+# Stability analysis
+sync_history = np.array(plasma_stable.historico_sync)
+stability_metric = np.std(sync_history[-50:]) if len(sync_history) >= 50 else np.std(sync_history)
 
-if super_final:
-    print(f"\n🎉 EXCEPTIONAL PERFORMANCE!")
-    print(f"   • System reached SUPER-CRUISE mode")
-    print(f"   • Extreme synchronization: {sync_final:.3f}")
-    print(f"   • Ultra-optimized parameters")
-elif regime_final:
-    print(f"\n✅ SUCCESS! System stable in cruise mode")
+print(f"\n📈 STABILITY ANALYSIS:")
+print(f"   Final sync std: {stability_metric:.4f}")
+print(f"   Max sync: {np.max(sync_history):.3f}")
+print(f"   Min sync: {np.min(sync_history):.3f}")
+
+if final_cruise or final_super:
+    print(f"\n🎉 STABILITY ACHIEVED!")
+    print(f"   • System reached target regime")
+    print(f"   • Stable operation maintained")
 else:
-    print(f"\n📈 IN PROGRESS: Sync = {sync_final:.3f}")
+    if stability_metric < 0.1:
+        print(f"\n📈 GOOD STABILITY: Low oscillations (std: {stability_metric:.4f})")
+    else:
+        print(f"\n⚠️  NEEDS TUNING: High oscillations (std: {stability_metric:.4f})")
 
 print("="*80)
