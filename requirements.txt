@@ -1,0 +1,21 @@
+# ΨQRH Plasma Synchronization System - Dependencies
+# Python 3.7+
+
+# Core numerical computing
+numpy>=1.19.0
+
+# Visualization
+matplotlib>=3.3.0
+
+# Scientific computing and signal processing
+scipy>=1.5.0
+
+# Optional: For faster computation
+# numba>=0.51.0  # Uncomment for JIT compilation
+
+# Optional: For GPU acceleration
+# cupy>=8.0.0    # Uncomment for CUDA support
+
+# Optional: For interactive plots
+# plotly>=4.14.0  # Uncomment for 3D visualizations
+# dash>=1.20.0    # Uncomment for web dashboard
